@@ -25,6 +25,7 @@ def input_black_list():
 
 print(input_black_list())
 
+
 # data = pd.read_table("test.csv", sep="delimiter")
 # st = data.head(0)
 # t = st[0].split(",")
