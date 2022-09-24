@@ -12,6 +12,7 @@ def get_short_list(filename, first_names, last_names):
         writer = csv.writer(res_file, delimiter=" ")
         csvreader = csv.reader(file, delimiter=";")
         row1 = next(csvreader)
+        writer.writerow(row1)
         for row in csvreader:
             if (
                 (row[24] not in first_names)
@@ -19,7 +20,6 @@ def get_short_list(filename, first_names, last_names):
                 and (forbidden_word not in row[43])
                 and face_filter(row[30])
             ):
-                writer.writerow(row1)
                 writer.writerow(row)
                 count += 1
         print("Done, now there are", count, "person")
