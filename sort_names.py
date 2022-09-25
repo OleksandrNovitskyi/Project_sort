@@ -9,7 +9,7 @@ def get_short_list(filename, first_names, last_names):
     with open(filename, "r", encoding="utf8") as file, open(
         "result.csv", "w+", encoding="utf8", newline=""
     ) as res_file:
-        writer = csv.writer(res_file, delimiter=" ")
+        writer = csv.writer(res_file, delimiter=";")
         csvreader = csv.reader(file, delimiter=";")
         row1 = next(csvreader)
         writer.writerow(row1)
