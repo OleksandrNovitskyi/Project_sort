@@ -1,8 +1,8 @@
 import csv
-from fileinput import filename
-from deepface import DeepFace
 import sys
 import time
+from fileinput import filename
+from deepface import DeepFace
 
 
 filename = sys.argv[1]
@@ -22,6 +22,7 @@ def get_short_list(filename, first_names, last_names):
     """Read .csv file and create(rewrite) another .csv file with short list of people"""
     count = 0
     count_row = 0
+    n_cond = 0
     res_file_name = filename[:-4] + "_filt.csv"
     with open(filename, "r", encoding="utf8") as file, open(
         res_file_name, "w+", encoding="utf8", newline=""
@@ -31,10 +32,12 @@ def get_short_list(filename, first_names, last_names):
             file, delimiter=","
         )  # delimiter="," - if the data is concatenated in the first column by ','
         # delimiter=";" - if the data in the different column
-        row1 = next(csvreader)
-        writer.writerow(row1)
-        for row in csvreader:
-            count_row += 1
+        read_file = list(csvreader)
+        num_people = len(read_file) - 1
+        print("--- START ---")
+        print("Estimated time ~ {} seconds".format(num_people * 1.2))
+
+        for row in read_file:
             if (
                 (row[24] not in first_names)
                 and (row[25] not in last_names)
@@ -43,7 +46,13 @@ def get_short_list(filename, first_names, last_names):
             ):
                 writer.writerow(row)
                 count += 1
-        print("There were", count_row, "people before filtering")
+            count_row += 1
+            condition = round(100 * count_row / num_people)
+
+            if (condition % 5 == 0) and (n_cond != condition):
+                n_cond = condition
+                print("---- {}% completed ----".format(n_cond))
+        print("There were", num_people, "people before filtering")
         print("Done, now there are", count, "people")
         print("Results at the file '{}'".format(res_file_name))
 
