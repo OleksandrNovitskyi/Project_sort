@@ -15,10 +15,9 @@ races = [
     "white",
     "asian",
 ]  # enter necessary races. List of possible races - ['asian', 'indian', 'black', 'white', 'middle eastern', 'latino hispanic']
-forbidden_word = "NFT"  # a forbidden word in the current position of person
 
 
-def get_short_list(filename, first_names, last_names):
+def get_short_list(filename, first_names, last_names, positions):
     """Read .csv file and create(rewrite) another .csv file with short list of people"""
     count = 0
     count_row = 0
@@ -34,18 +33,21 @@ def get_short_list(filename, first_names, last_names):
         # delimiter=";" - if the data in the different column
         read_file = list(csvreader)
         num_people = len(read_file) - 1
+        count_name = count_last = count_pos = count_age_race = num_people + 1
         print("--- START ---")
         print("Estimated time ~ {} seconds".format(num_people * 1.2))
 
         for row in read_file:
-            if (
-                name_filter(row[24], first_names)
-                and (row[25] not in last_names)
-                and (forbidden_word not in row[43])
-                and face_filter(row[30], limit_age, races)
-            ):
-                writer.writerow(row)
-                count += 1
+            if name_filter(row[24], first_names):
+                count_name -= 1
+                if row[25] not in last_names:
+                    count_last -= 1
+                    if position_filter(row[43], positions):
+                        count_pos -= 1
+                        if face_filter(row[30], limit_age, races):
+                            count_age_race -= 1
+                            writer.writerow(row)
+                            count += 1
             count_row += 1
             condition = round(100 * count_row / num_people)
 
@@ -55,6 +57,13 @@ def get_short_list(filename, first_names, last_names):
         print("There were", num_people, "people before filtering")
         print("Done, now there are", count, "people")
         print("Results at the file '{}'".format(res_file_name))
+        print("Statistic:")
+        print("Delete by Name filtered {} person".format(count_name))
+        print("Delete by Last name filtered {} person".format(count_last - count_name))
+        print("Delete by Position filtered {} person".format(count_pos - count_last))
+        print(
+            "Delete by DeepFace filtered {} person".format(count_age_race - count_pos)
+        )
 
 
 def input_black_list():
@@ -68,7 +77,8 @@ def input_black_list():
     )
     first_names = df[df.columns[0]].values.tolist()
     last_names = df[df.columns[1]].values.tolist()
-    return first_names, last_names
+    positions = df[df.columns[2]].values.tolist()
+    return first_names, last_names, positions
 
 
 def name_filter(name, black_list):
@@ -78,6 +88,16 @@ def name_filter(name, black_list):
             return word != name
         if word in name:
             return False
+    return True
+
+
+def position_filter(position, black_list):
+    """Filter people by part of the position"""
+    position = position.lower()
+    for word in black_list:
+        if type(word) == str:
+            if word.lower() in position:
+                return False
     return True
 
 
@@ -96,10 +116,9 @@ def face_filter(img, age=25, races="white"):
 
 
 def main():
-
     start_time = time.time()
-    first_names, last_names = input_black_list()
-    get_short_list(filename, first_names, last_names)
+    first_names, last_names, positions = input_black_list()
+    get_short_list(filename, first_names, last_names, positions)
     print("Work time --- {} seconds ---".format(time.time() - start_time))
 
 
