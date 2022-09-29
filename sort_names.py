@@ -3,6 +3,7 @@ import sys
 import time
 from fileinput import filename
 from deepface import DeepFace
+import pandas as pd
 
 
 filename = sys.argv[1]
@@ -15,7 +16,6 @@ races = [
     "asian",
 ]  # enter necessary races. List of possible races - ['asian', 'indian', 'black', 'white', 'middle eastern', 'latino hispanic']
 forbidden_word = "NFT"  # a forbidden word in the current position of person
-black_list = "Indusi.csv"  # Filter by name. CSV file with two columns - First_name and Second_name
 
 
 def get_short_list(filename, first_names, last_names):
@@ -39,7 +39,7 @@ def get_short_list(filename, first_names, last_names):
 
         for row in read_file:
             if (
-                (row[24] not in first_names)
+                name_filter(row[24], first_names)
                 and (row[25] not in last_names)
                 and (forbidden_word not in row[43])
                 and face_filter(row[30], limit_age, races)
@@ -49,7 +49,7 @@ def get_short_list(filename, first_names, last_names):
             count_row += 1
             condition = round(100 * count_row / num_people)
 
-            if (condition % 5 == 0) and (n_cond != condition):
+            if (condition % 2 == 0) and (n_cond != condition):
                 n_cond = condition
                 print("---- {}% completed ----".format(n_cond))
         print("There were", num_people, "people before filtering")
@@ -58,19 +58,30 @@ def get_short_list(filename, first_names, last_names):
 
 
 def input_black_list():
-    """Read .csv black list and return list of first_names and list of last_names"""
-    with open(black_list, "r", encoding="utf8") as file:
-        csvreader = csv.reader(file, delimiter=",")
-        first_names = []
-        last_names = []
-        title_t = next(csvreader)
-        for row in csvreader:
-            first_names.append(row[0])
-            last_names.append(row[1])
+    """Read Google Sheet black list and return list of first_names and list of last_names
+
+    black_list = "https://docs.google.com/spreadsheets/d/1lXjDSK5398p1yJuTJn3vO4Ux9KDJtqP1esar1Z9U4vc/edit#gid=0"
+    """
+    sheet_id = "1lXjDSK5398p1yJuTJn3vO4Ux9KDJtqP1esar1Z9U4vc"
+    df = pd.read_csv(
+        f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+    )
+    first_names = df[df.columns[0]].values.tolist()
+    last_names = df[df.columns[1]].values.tolist()
     return first_names, last_names
 
 
-def face_filter(img, age=25, race="white"):
+def name_filter(name, black_list):
+    """Filter people by name and by part of name"""
+    for word in black_list:
+        if len(word) <= 2:
+            return word != name
+        if word in name:
+            return False
+    return True
+
+
+def face_filter(img, age=25, races="white"):
     """Filter people by age and race using photo
 
     img - path to photo
