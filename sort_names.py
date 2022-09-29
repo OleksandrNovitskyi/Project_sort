@@ -35,7 +35,7 @@ def get_short_list(filename, first_names, last_names, positions):
         num_people = len(read_file) - 1
         count_name = count_last = count_pos = count_age_race = num_people + 1
         print("--- START ---")
-        print("Estimated time ~ {} seconds".format(num_people * 1.2))
+        print("Estimated time ~ {} minutes".format(round(num_people * 1.2 / 60)))
 
         for row in read_file:
             if name_filter(row[24], first_names):
@@ -119,7 +119,7 @@ def main():
     start_time = time.time()
     first_names, last_names, positions = input_black_list()
     get_short_list(filename, first_names, last_names, positions)
-    print("Work time --- {} seconds ---".format(time.time() - start_time))
+    print("Work time --- {} minutes ---".format(round((time.time() - start_time) / 60)))
 
 
 if __name__ == "__main__":
