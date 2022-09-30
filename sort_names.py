@@ -44,7 +44,7 @@ def get_short_list(filename, first_names, last_names, positions):
                     count_last -= 1
                     if position_filter(row[43], positions):
                         count_pos -= 1
-                        if face_filter(row[30], limit_age, races):
+                        if face_filter(row[30], row[0], limit_age, races):
                             count_age_race -= 1
                             writer.writerow(row)
                             count += 1
@@ -101,7 +101,7 @@ def position_filter(position, black_list):
     return True
 
 
-def face_filter(img, age=25, races="white"):
+def face_filter(img, id, age=25, races="white"):
     """Filter people by age and race using photo
 
     img - path to photo
@@ -110,7 +110,7 @@ def face_filter(img, age=25, races="white"):
     """
     try:
         obj = DeepFace.analyze(img_path=img, actions=["age", "race"])
-        print(obj)
+        print("Person with id - {}".format(id), obj)
         return (obj["age"] > age) and (obj["dominant_race"] in races)
     except Exception as _ex:
         return _ex
