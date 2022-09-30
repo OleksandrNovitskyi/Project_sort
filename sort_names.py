@@ -110,6 +110,7 @@ def face_filter(img, age=25, races="white"):
     """
     try:
         obj = DeepFace.analyze(img_path=img, actions=["age", "race"])
+        print(obj)
         return (obj["age"] > age) and (obj["dominant_race"] in races)
     except Exception as _ex:
         return _ex
