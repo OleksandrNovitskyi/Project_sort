@@ -21,6 +21,7 @@ def get_short_list(filename, first_names, last_names, positions):
     """Read .csv file and create(rewrite) another .csv file with short list of people"""
     count = 0
     count_row = 0
+    count_errors = 0
     n_cond = 0
     res_file_name = filename[:-4] + "_filt.csv"
     with open(filename, "r", encoding="utf8") as file, open(
@@ -44,14 +45,18 @@ def get_short_list(filename, first_names, last_names, positions):
                     count_last -= 1
                     if position_filter(row[43], positions):
                         count_pos -= 1
-                        if face_filter(row[30], row[0], limit_age, races):
+                        res_face, text_error = face_filter(
+                            row[30], row[0], limit_age, races
+                        )
+                        count_errors += text_error
+                        if res_face:
                             count_age_race -= 1
                             writer.writerow(row)
                             count += 1
             count_row += 1
             condition = round(100 * count_row / num_people)
 
-            if (condition % 2 == 0) and (n_cond != condition):
+            if (condition % 10 == 0) and (n_cond != condition):
                 n_cond = condition
                 print("---- {}% completed ----".format(n_cond))
         print("There were", num_people, "people before filtering")
@@ -63,6 +68,11 @@ def get_short_list(filename, first_names, last_names, positions):
         print("Delete by Position filtered {} person".format(count_pos - count_last))
         print(
             "Delete by DeepFace filtered {} person".format(count_age_race - count_pos)
+        )
+        print(
+            "DeepFace cann't read {} photos of the people, all of them were deleted".format(
+                count_errors
+            )
         )
 
 
@@ -110,10 +120,14 @@ def face_filter(img, id, age=25, races="white"):
     """
     try:
         obj = DeepFace.analyze(img_path=img, actions=["age", "race"])
-        print("Person with id - {}".format(id), obj)
-        return (obj["age"] > age) and (obj["dominant_race"] in races)
+        print(
+            "Person with id - {}, age - {}, race - {}".format(
+                id, obj["age"], obj["dominant_race"]
+            )
+        )
+        return (obj["age"] > age) and (obj["dominant_race"] in races), 0
     except Exception as _ex:
-        return _ex
+        return False, 1
 
 
 def main():

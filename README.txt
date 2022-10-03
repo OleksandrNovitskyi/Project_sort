@@ -13,7 +13,7 @@ Filters:
 1.1 Filtering by partial name matching. If a part of the name is entered in the first column of the "black list" (case sensitive), such employees will be filtered out.
 !!! Part of the name must contain three letters or more
 2. there is the word "NFT" in the employee's position (column 43). The word can be replaced in the ---- INPUT PARAMETERS ----  by replacing the value of the variable '''forbidden_word'''
-3. the age and race of the employee are determined by the library ``` DeepFace``` using the photo from the profile (link in column 30). 
+3. the age and race of the employee are determined by the library ``` DeepFace``` using the photo from the profile (link in column 30). If DeepFace cannot recognize the photo or the link is missing - the person will be removed from the list
 The face_filter function takes the link to a photo and is set to filter workers under age and races. Age and races can be replaced in the ---- INPUT PARAMETERS ----  by replacing the value of the variable '''limit_age''' and '''races'''
 List of possible races - ['asian', 'indian', 'black', 'white', 'middle eastern', 'latino hispanic']
 
