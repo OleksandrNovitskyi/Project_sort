@@ -9,6 +9,7 @@ import pandas as pd
 
 
 filename = sys.argv[1]
+param_people_without_avatar = sys.argv[2]
 
 # ---- INPUT PARAMETERS ----
 limit_age = 25  # not younger than
@@ -17,6 +18,27 @@ races = [
     "black",
     "white",
 ]  # enter necessary races. List of possible races - ['asian', 'indian', 'black', 'white', 'middle eastern', 'latino hispanic']
+
+
+class WrongInputParameter(Exception):
+    """Stop script if input parameter is wrong"""
+
+    def __init__(self):
+        Exception.__init__(self)
+
+
+def people_without_avatar(flag):
+    """Read input parameter 'people without avatar' and comvert them to boolean"""
+    try:
+        if flag == "del_pwa":
+            return True
+        elif flag == "save_pwa":
+            return False
+        else:
+            raise WrongInputParameter()
+    except WrongInputParameter as _wip:
+        print("WrongInputParameter: The last parameter must be 'del_pwa' or 'save_pwa'")
+        sys.exit(1)
 
 
 def get_short_list(filename, first_names, last_names, positions):
@@ -49,8 +71,13 @@ def get_short_list(filename, first_names, last_names, positions):
                     count_last -= 1
                     if position_filter(row[43], positions):
                         count_pos -= 1
-                        if row[30] == "":
+                        flag = people_without_avatar(param_people_without_avatar)
+                        if (row[30] == "") and flag:
                             count_no_link += 1
+                        elif (row[30] == "") and not flag:
+                            count_no_link += 1
+                            count += 1
+                            writer.writerow(row)
                         else:
                             if face_filter(row[30], limit_age, races):
                                 count_age_race -= 1

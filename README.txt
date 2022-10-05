@@ -12,8 +12,9 @@ Filters:
  The name of the employee is in column 24, the surname is in column 25. 
 1.1 Filtering by partial name matching. If a part of the name is entered in the first column of the "black list" (case sensitive), such employees will be filtered out.
 !!! Part of the name must contain three letters or more
-2. by Forbidden word in position (column 43). List of the forbidden words is formed from third column of the "black list". 
-3. the age and race of the employee are determined by the library ``` DeepFace``` using the photo from the profile (link in column 30). If link is missing - the person will be removed.
+2. Filtering by Forbidden word in position (column 43). List of the forbidden words is formed from third column of the "black list". 
+3. the age and race of the employee are determined by the library ``` DeepFace``` using the photo from the profile (link in column 30). 
+If link is missing - the person will be saved or deleted based on the value of the input parameter (save_pwa / del_pwa).
 The face_filter function takes the link to a photo and is set to filter workers under age and races. Age and races can be replaced in the ---- INPUT PARAMETERS ----  by replacing the value of the variable '''limit_age''' and '''races'''
 List of possible races - ['asian', 'indian', 'black', 'white', 'middle eastern', 'latino hispanic']
 
@@ -29,12 +30,12 @@ Soft requirements:
 2. DeepFace library. The library installation is described here - https://github.com/serengil/deepface.
 
 How to use:
-In the terminal (command line) go to the folder with a program using the ```cd``` command and enter the command  ```python sort_names.py input_file_name.csv```.
+In the terminal (command line) go to the folder with a program using the ```cd``` command and enter the command  ```python sort_names.py input_file_name.csv save_pwa```.
 Example:
 the saved folder is located at "C:\Users\NOS_HOME\Downloads\Project_sort".
 run terminal (command line) - C:\Users\NOS_HOME>
 go to the destination folder - C:\Users\NOS_HOME>cd Downloads\Project_sort
 result - C:\Users\NOS_HOME\Downloads\Project_sort>
-program execution - C:\Users\NOS_HOME\Downloads\Project_sort>python sort_names.py MissouriSoftware_Tech_IT.csv
+program execution - C:\Users\NOS_HOME\Downloads\Project_sort>python sort_names.py MissouriSoftware_Tech_IT.csv save_pwa
 
 To stop program execution - press "Ctrl+C"
