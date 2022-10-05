@@ -13,14 +13,14 @@ Filters:
 1.1 Filtering by partial name matching. If a part of the name is entered in the first column of the "black list" (case sensitive), such employees will be filtered out.
 !!! Part of the name must contain three letters or more
 2. by Forbidden word in position (column 43). List of the forbidden words is formed from third column of the "black list". 
-3. the age and race of the employee are determined by the library ``` DeepFace``` using the photo from the profile (link in column 30). If link is missing - the person will be moved to file FILENAME_without_avatar.csv
+3. the age and race of the employee are determined by the library ``` DeepFace``` using the photo from the profile (link in column 30). If link is missing - the person will be removed.
 The face_filter function takes the link to a photo and is set to filter workers under age and races. Age and races can be replaced in the ---- INPUT PARAMETERS ----  by replacing the value of the variable '''limit_age''' and '''races'''
 List of possible races - ['asian', 'indian', 'black', 'white', 'middle eastern', 'latino hispanic']
 
-The result of the program is two CSV files. Name of new files consist of the input file name + _filt and +_without_avatar. 
+The result of the program isCSV file. Name of new file consist of the input file name + _filt. 
 Exammple: input file - "MissouriSoftware_Tech_IT.csv"
           result files - "MissouriSoftware_Tech_IT_filt.csv"
-                         "MissouriSoftware_Tech_IT_without_avatar.csv"
+        
                          
 To check the program’s functionality, a test is written that checks the differences between the input and output files.
 

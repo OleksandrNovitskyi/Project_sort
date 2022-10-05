@@ -26,14 +26,10 @@ def get_short_list(filename, first_names, last_names, positions):
     count_no_link = 0
     n_cond = 0
     res_file_name = filename[:-4] + "_filt.csv"
-    res_bad_file_name = filename[:-4] + "_without_avatar.csv"
     with open(filename, "r", encoding="utf8") as file, open(
         res_file_name, "w+", encoding="utf8", newline=""
-    ) as res_file, open(
-        res_bad_file_name, "w+", encoding="utf8", newline=""
-    ) as res_bad_file:
+    ) as res_file:
         writer = csv.writer(res_file, delimiter=";")
-        writer2 = csv.writer(res_bad_file, delimiter=";")
         csvreader = csv.reader(
             file, delimiter=","
         )  # delimiter="," - if the data is concatenated in the first column by ','
@@ -45,7 +41,6 @@ def get_short_list(filename, first_names, last_names, positions):
         print("--- START ---")
         print("Estimated time ~ {} minutes".format(round(num_people * 1.2 / 60)))
         writer.writerow(first_row)
-        writer2.writerow(first_row)
 
         for row in read_file:
             if name_filter(row[24], first_names):
@@ -55,7 +50,6 @@ def get_short_list(filename, first_names, last_names, positions):
                     if position_filter(row[43], positions):
                         count_pos -= 1
                         if row[30] == "":
-                            writer2.writerow(row)
                             count_no_link += 1
                         else:
                             if face_filter(row[30], limit_age, races):
@@ -71,10 +65,9 @@ def get_short_list(filename, first_names, last_names, positions):
         print("There were", num_people, "people before filtering")
         print("Done, now there are", count, "people")
         print("Results at the file '{}'".format(res_file_name))
-        print("There are", count_no_link, "people without avatar")
-        print("Results at the file '{}'".format(res_bad_file_name))
 
         print("Statistic:")
+        print("There are", count_no_link, "people without avatar")
         print("Delete by Name filtered {} person".format(count_name))
         print("Delete by Last name filtered {} person".format(count_last - count_name))
         print("Delete by Position filtered {} person".format(count_pos - count_last))
@@ -135,7 +128,6 @@ def face_filter(img, age=25, races="white"):
         obj = DeepFace.analyze(img_path=img, actions=["age", "race"])
         return (obj["age"] > age) and (obj["dominant_race"] in races)
     except Exception as _ex:
-        # print(_ex)
         try:
             download_img(img)
             obj = DeepFace.analyze("img.jpg", actions=["age", "race"])
