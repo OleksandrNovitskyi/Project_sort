@@ -3,13 +3,13 @@ import sys
 import time
 import urllib.request
 
+from collections import defaultdict
 from fileinput import filename
 from deepface import DeepFace
 import pandas as pd
 
 
 filename = sys.argv[1]
-# param_people_without_avatar = sys.argv[2]
 
 # ---- INPUT PARAMETERS ----
 limit_age = 25  # not younger than
@@ -27,11 +27,16 @@ def get_short_list(filename, first_names, last_names, positions):
     count_row = 0
     count_no_link = 0
     n_cond = 0
+    d = defaultdict(int)
     res_file_name = filename[:-4] + "_filt.csv"
+    res_del_file_name = filename[:-4] + "_deleted.csv"
     with open(filename, "r", encoding="utf8") as file, open(
         res_file_name, "w+", encoding="utf8", newline=""
-    ) as res_file:
+    ) as res_file, open(
+        res_del_file_name, "w+", encoding="utf8", newline=""
+    ) as res_del_file:
         writer = csv.writer(res_file, delimiter=";")
+        writer2 = csv.writer(res_del_file, delimiter=";")
         csvreader = csv.reader(
             file, delimiter=","
         )  # delimiter="," - if the data is concatenated in the first column by ','
@@ -39,10 +44,11 @@ def get_short_list(filename, first_names, last_names, positions):
         first_row = next(csvreader)
         read_file = list(csvreader)
         num_people = len(read_file)
-        count_name = count_last = count_pos = count_age_race = num_people
+        count_name = count_last = count_pos = count_age = count_race = num_people
         print("--- START ---")
         print("Estimated time ~ {} minutes".format(round(num_people * 1.2 / 60)))
         writer.writerow(first_row)
+        writer2.writerow(first_row)
 
         for row in read_file:
             if name_filter(row[24], first_names):
@@ -53,15 +59,33 @@ def get_short_list(filename, first_names, last_names, positions):
                         count_pos -= 1
                         if (row[30] == "") and del_people_without_avatar:
                             count_no_link += 1
+                            writer2.writerow(row)
                         elif (row[30] == "") and not del_people_without_avatar:
                             count_no_link += 1
                             count += 1
                             writer.writerow(row)
                         else:
-                            if face_filter(row[30], limit_age, races):
-                                count_age_race -= 1
-                                count += 1
-                                writer.writerow(row)
+                            age, race, curent_race = face_filter(
+                                row[30], limit_age, races
+                            )
+                            if age:
+                                count_age -= 1
+                                d[curent_race] += 1
+                                if race:
+                                    count_race -= 1
+                                    count += 1
+                                    writer.writerow(row)
+                                else:
+                                    writer2.writerow(row)
+                            else:
+                                writer2.writerow(row)
+                    else:
+                        writer2.writerow(row)
+                else:
+                    writer2.writerow(row)
+            else:
+                writer2.writerow(row)
+
             count_row += 1
             condition = round(100 * count_row / num_people)
 
@@ -73,15 +97,32 @@ def get_short_list(filename, first_names, last_names, positions):
         print("Results at the file '{}'".format(res_file_name))
 
         print("Statistic:")
-        print("There are", count_no_link, "people without avatar")
+        if del_people_without_avatar:
+            print(
+                "There are",
+                count_no_link,
+                "people without avatar and they were deleted",
+            )
+        else:
+            print(
+                "There are",
+                count_no_link,
+                "people without avatar and they in the result file",
+            )
         print("Delete by Name filtered {} person".format(count_name))
         print("Delete by Last name filtered {} person".format(count_last - count_name))
         print("Delete by Position filtered {} person".format(count_pos - count_last))
         print(
-            "Delete by DeepFace filtered {} person".format(
-                count_age_race - count_pos - count_no_link
+            "Delete by Age using DeepFace filter {} person".format(
+                count_age - count_pos - count_no_link
             )
         )
+        print(
+            "Delete by Race using DeepFace filter {} person".format(
+                count_race - count_age
+            )
+        )
+        print("How many people of what races made it to sorting by race", dict(d))
 
 
 def download_img(imgURL):
@@ -132,14 +173,18 @@ def face_filter(img, age=25, races="white"):
     """
     try:
         obj = DeepFace.analyze(img_path=img, actions=["age", "race"])
-        return (obj["age"] > age) and (obj["dominant_race"] in races)
+        return (obj["age"] > age), (obj["dominant_race"] in races), obj["dominant_race"]
     except Exception as _ex:
         try:
             download_img(img)
             obj = DeepFace.analyze("img.jpg", actions=["age", "race"])
-            return (obj["age"] > age) and (obj["dominant_race"] in races)
+            return (
+                (obj["age"] > age),
+                (obj["dominant_race"] in races),
+                obj["dominant_race"],
+            )
         except Exception as _ex2:
-            return False
+            return False, False, None
 
 
 def main():
