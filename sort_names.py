@@ -12,7 +12,7 @@ import pandas as pd
 filename = sys.argv[1]
 
 # ---- INPUT PARAMETERS ----
-limit_age = 25  # not younger than
+limit_age = 1  # not younger than
 races = [
     "asian",
     "black",
@@ -25,7 +25,7 @@ def get_short_list(filename, first_names, last_names, positions):
     """Read .csv file and create(rewrite) another .csv file with short list of people"""
     count = 0
     count_row = 0
-    count_no_link = 0
+    count_no_link = count_unreadable_ava = 0
     n_cond = 0
     d = defaultdict(int)
     res_file_name = filename[:-4] + "_filt.csv"
@@ -68,17 +68,22 @@ def get_short_list(filename, first_names, last_names, positions):
                             age, race, curent_race = face_filter(
                                 row[30], limit_age, races
                             )
-                            if age:
-                                count_age -= 1
-                                d[curent_race] += 1
-                                if race:
-                                    count_race -= 1
-                                    count += 1
-                                    writer.writerow(row)
+                            if curent_race is not None:
+                                if age:
+                                    count_age -= 1
+                                    d[curent_race] += 1
+                                    if race:
+                                        count_race -= 1
+                                        count += 1
+                                        writer.writerow(row)
+                                    else:
+                                        writer2.writerow(row)
                                 else:
                                     writer2.writerow(row)
                             else:
-                                writer2.writerow(row)
+                                count_unreadable_ava += 1
+                                count += 1
+                                writer.writerow(row)
                     else:
                         writer2.writerow(row)
                 else:
@@ -109,12 +114,17 @@ def get_short_list(filename, first_names, last_names, positions):
                 count_no_link,
                 "people without avatar and they in the result file",
             )
+        print(
+            "There are",
+            count_unreadable_ava,
+            "people with unreadable avatar and they in the result file",
+        )
         print("Delete by Name filtered {} person".format(count_name))
         print("Delete by Last name filtered {} person".format(count_last - count_name))
         print("Delete by Position filtered {} person".format(count_pos - count_last))
         print(
             "Delete by Age using DeepFace filter {} person".format(
-                count_age - count_pos - count_no_link
+                count_age - count_pos - count_no_link - count_unreadable_ava
             )
         )
         print(
