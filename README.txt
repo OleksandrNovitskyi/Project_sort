@@ -5,20 +5,23 @@ sort emploee
 The work of the program is designed for reading a CSV table with data on employees and cleaning it according to certain filters.
 Input data:
 1. CSV table with data on employees(! file name without spaces);
-2. CSV table "black list"
+2. link to spreadsheets "black list"
 
 Filters:
-1. name or surname of the employee on the "black list". The "black list" is formed manually by HR and has two columns - First_name and Last_name.
- The name of the employee is in column 24, the surname is in column 25. Path to "black list" file is entered at the ---- INPUT PARAMETERS ---- by replacing the value of the variable '''black_list'''
-2. there is the word "NFT" in the employee's position (column 43). The word can be replaced in the ---- INPUT PARAMETERS ----  by replacing the value of the variable '''forbidden_word'''
-3. the age and race of the employee are determined by the library ``` DeepFace``` using the photo from the profile (link in column 30). 
+1. name or surname of the employee on the "black list". The "black list" is formed manually by HR and has three columns - First_name, Last_name and Forbidden word in position.
+ The name of the employee is in column 24, the surname is in column 25. 
+1.1 Filtering by partial name matching. If a part of the name is entered in the first column of the "black list" (case sensitive), such employees will be filtered out.
+!!! Part of the name must contain three letters or more
+2. by Forbidden word in position (column 43). List of the forbidden words is formed from third column of the "black list". 
+3. the age and race of the employee are determined by the library ``` DeepFace``` using the photo from the profile (link in column 30). If link is missing - the person will be moved to file FILENAME_without_avatar.csv
 The face_filter function takes the link to a photo and is set to filter workers under age and races. Age and races can be replaced in the ---- INPUT PARAMETERS ----  by replacing the value of the variable '''limit_age''' and '''races'''
 List of possible races - ['asian', 'indian', 'black', 'white', 'middle eastern', 'latino hispanic']
 
-The result of the program is the CSV file. name of new file consist of the input file name + _filt. 
+The result of the program is two CSV files. Name of new files consist of the input file name + _filt and +_without_avatar. 
 Exammple: input file - "MissouriSoftware_Tech_IT.csv"
-          result file - "MissouriSoftware_Tech_IT_filt.csv"
-
+          result files - "MissouriSoftware_Tech_IT_filt.csv"
+                         "MissouriSoftware_Tech_IT_without_avatar.csv"
+                         
 To check the program’s functionality, a test is written that checks the differences between the input and output files.
 
 Soft requirements:
