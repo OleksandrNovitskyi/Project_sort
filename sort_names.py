@@ -23,6 +23,12 @@ def conditions(row, dict_races, first_names, last_names, positions):
     At the same time returns a tuple with counters
     """
     counts = []
+    conditions = [
+        filters.name_filter(row[24], first_names),
+        row[25] not in last_names,
+        filters.position_filter(row[43], positions),
+        (row[30] == "") and DEL_PEOPLE_WITHOUT_AVATAR,
+    ]
     if filters.name_filter(row[24], first_names):
         counts.append("count_name")
         if row[25] not in last_names:
@@ -113,43 +119,32 @@ def get_short_list(f_name, first_names, last_names, positions):
             if (condition % 10 == 0) and (n_cond != condition):
                 n_cond = condition
                 print(f"---- {n_cond}% completed ----")
-        print("There were", num_people, "people before filtering")
-        print("Done, now there are", d_counters["count"], "people")
-        print(
-            f"Results at the file '{res_file_name}', deleted people at the file '{res_del_file_name}'"
-        )
-        print("Statistic:")
+
+        arr = [
+            f"There were {num_people} people before filtering",
+            f"Done, now there are {d_counters['count']} people",
+            f"Results at the file '{res_file_name}', deleted people at the file '{res_del_file_name}'",
+            "Statistic:",
+        ]
         if DEL_PEOPLE_WITHOUT_AVATAR:
-            print(
-                "There are",
-                d_counters["count_no_link"],
-                "people without avatar and they were deleted",
+            arr.append(
+                f"There are {d_counters['count_no_link']} people without avatar and they were deleted"
             )
         else:
-            print(
-                "There are",
-                d_counters["count_no_link"],
-                "people without avatar and they in the result file",
+            arr.append(
+                f"There are {d_counters['count_no_link']} people without avatar and they in the result file"
             )
-        print(
-            "There are",
-            d_counters["count_unreadable_ava"],
-            "people with unreadable avatar and they in the result file",
-        )
-        print(f"Delete by Name filtered {num_people - d_counters['count_name']} person")
-        print(
-            f"Delete by Last name filtered {d_counters['count_name'] - d_counters['count_last']} person"
-        )
-        print(
-            f"Delete by Position filtered {d_counters['count_last'] - d_counters['count_pos']} person"
-        )
-        print(
-            f"Delete by Age using DeepFace filter {d_counters['count_pos'] - d_counters['count_age'] - d_counters['count_no_link'] - d_counters['count_unreadable_ava']} person"
-        )
-        print(
-            f"Delete by Race using DeepFace filter {d_counters['count_age'] - d_counters['count_race']} person"
-        )
-        print("How many people of what races made it to sorting by race", dict(d_rases))
+        arr2 = [
+            f"There are {d_counters['count_unreadable_ava']} people with unreadable avatar and they in the result file",
+            f"Delete by Name filtered {num_people - d_counters['count_name']} person",
+            f"Delete by Last name filtered {d_counters['count_name'] - d_counters['count_last']} person",
+            f"Delete by Position filtered {d_counters['count_last'] - d_counters['count_pos']} person",
+            f"Delete by Age using DeepFace filter {d_counters['count_pos'] - d_counters['count_age'] - d_counters['count_no_link'] - d_counters['count_unreadable_ava']} person",
+            f"Delete by Race using DeepFace filter {d_counters['count_age'] - d_counters['count_race']} person",
+            f"How many people of what races made it to sorting by race {dict(d_rases)}",
+        ]
+        statistic = arr + arr2
+        print("\n".join(statistic))
 
 
 def download_img(imgURL):
