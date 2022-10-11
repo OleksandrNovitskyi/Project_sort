@@ -22,62 +22,42 @@ def conditions(row, dict_races, first_names, last_names, positions):
     """Check all conditions and if row is correct - return True, else - False.
     At the same time returns a tuple with counters
     """
+    counts = []
     if filters.name_filter(row[24], first_names):
+        counts.append("count_name")
         if row[25] not in last_names:
+            counts.append("count_last")
             if filters.position_filter(row[43], positions):
+                counts.append("count_pos")
                 if (row[30] == "") and DEL_PEOPLE_WITHOUT_AVATAR:
-                    return False, (
-                        "count_name",
-                        "count_last",
-                        "count_pos",
-                        "count_no_link",
-                    )
+                    counts.append("count_no_link")
+                    return False, counts
                 elif (row[30] == "") and not DEL_PEOPLE_WITHOUT_AVATAR:
-                    return True, (
-                        "count_name",
-                        "count_last",
-                        "count_pos",
-                        "count_no_link",
-                        "count",
-                    )
+                    counts.extend(["count", "count_no_link"])
+                    return True, counts
                 else:
                     age, race, curent_race = filters.face_filter(
                         row[30], LIMIT_AGE, races
                     )
                     if curent_race is not None:
                         if age:
+                            counts.append("count_age")
                             dict_races[curent_race] += 1
                             if race:
-                                return True, (
-                                    "count_name",
-                                    "count_last",
-                                    "count_pos",
-                                    "count_age",
-                                    "count_race",
-                                    "count",
-                                )
-                            return False, (
-                                "count_name",
-                                "count_last",
-                                "count_pos",
-                                "count_age",
-                            )
-                        return False, ("count_name", "count_last", "count_pos")
-                    return True, (
-                        "count_name",
-                        "count_last",
-                        "count_pos",
-                        "count_unreadable_ava",
-                        "count",
-                    )
-            return False, ("count_name", "count_last")
-        return False, ("count_name",)
-    return False, ("",)
+                                counts.extend(["count", "count_race"])
+                                return True, counts
+                            return False, counts
+                        return False, counts
+                    counts.extend(["count_unreadable_ava", "count"])
+                    return True, counts
+            return False, counts
+        return False, counts
+    return False, counts
 
 
-def counters(dict_, tuple_):
-    """For each element in tuple, find same key in dict and increments it value"""
-    for elem in tuple_:
+def counters(dict_, list_):
+    """For each element in list, find same key in dict and increments it value"""
+    for elem in list_:
         if elem in dict_:
             dict_[elem] += 1
 
