@@ -23,42 +23,69 @@ def conditions(row, dict_races, first_names, last_names, positions):
     At the same time returns a tuple with counters
     """
     counts = []
-    conditions = [
+    cond = [
         filters.name_filter(row[24], first_names),
         row[25] not in last_names,
         filters.position_filter(row[43], positions),
-        (row[30] == "") and DEL_PEOPLE_WITHOUT_AVATAR,
+        (row[30] == "") and not DEL_PEOPLE_WITHOUT_AVATAR,
     ]
-    if filters.name_filter(row[24], first_names):
-        counts.append("count_name")
-        if row[25] not in last_names:
-            counts.append("count_last")
-            if filters.position_filter(row[43], positions):
-                counts.append("count_pos")
-                if (row[30] == "") and DEL_PEOPLE_WITHOUT_AVATAR:
-                    counts.append("count_no_link")
-                    return False, counts
-                elif (row[30] == "") and not DEL_PEOPLE_WITHOUT_AVATAR:
-                    counts.extend(["count", "count_no_link"])
-                    return True, counts
-                else:
-                    age, race, curent_race = filters.face_filter(
-                        row[30], LIMIT_AGE, races
-                    )
-                    if curent_race is not None:
-                        if age:
-                            counts.append("count_age")
-                            dict_races[curent_race] += 1
-                            if race:
-                                counts.extend(["count", "count_race"])
-                                return True, counts
-                            return False, counts
-                        return False, counts
-                    counts.extend(["count_unreadable_ava", "count"])
-                    return True, counts
-            return False, counts
-        return False, counts
-    return False, counts
+    simple_cond = cond[0] and cond[1] and cond[2] and cond[3]
+    if simple_cond:
+        age, race, curent_race = filters.face_filter(row[30], LIMIT_AGE, races)
+        cond.extend([curent_race is not None, age, race])
+        print(cond)
+        return ((not cond[4]) or (cond[5] and cond[6])), counts
+    return simple_cond, counts
+    # if filters.name_filter(row[24], first_names):
+    #     counts.append("count_name")
+    #     if row[25] not in last_names:
+    #         counts.append("count_last")
+    #         if filters.position_filter(row[43], positions):
+    #             counts.append("count_pos")
+    #             if (row[30] == "") and not DEL_PEOPLE_WITHOUT_AVATAR:
+    #                 counts.extend(["count", "count_no_link"])
+    #                 return True, counts
+    #             elif (row[30] == "") and DEL_PEOPLE_WITHOUT_AVATAR:
+    #                 counts.append("count_no_link")
+    #                 return False, counts
+    #             else:
+    #                 age, race, curent_race = filters.face_filter(
+    #                     row[30], LIMIT_AGE, races
+    #                 )
+    #                 if curent_race is not None:
+    #                     if age:
+    #                         counts.append("count_age")
+    #                         dict_races[curent_race] += 1
+    #                         if race:
+    #                             counts.extend(["count", "count_race"])
+    #                             return True, counts
+    #                         return False, counts
+    #                     return False, counts
+    #                 counts.extend(["count_unreadable_ava", "count"])
+    #                 return True, counts
+    #         return False, counts
+    #     return False, counts
+    # return False, counts
+
+
+# def DF_conditions(age, race, curent_race, counts, dict_races):
+#     conditions = [
+#         curent_race is not None,
+#         age,
+#         race,
+#     ]
+
+#     if curent_race is not None:
+#         if age:
+#             counts.append("count_age")
+#             dict_races[curent_race] += 1
+#             if race:
+#                 counts.extend(["count", "count_race"])
+#                 return True, counts
+#             return False, counts
+#         return False, counts
+#     counts.extend(["count_unreadable_ava", "count"])
+#     return True, counts
 
 
 def counters(dict_, list_):
