@@ -30,8 +30,10 @@ def conditions(row, dict_races, first_names, last_names, positions):
         (row[30] == "") and not DEL_PEOPLE_WITHOUT_AVATAR,
     ]
     simple_cond = cond[0] and cond[1] and cond[2] and cond[3]
+    print(simple_cond)
     if simple_cond:
         age, race, curent_race = filters.face_filter(row[30], LIMIT_AGE, races)
+        print(age, race, curent_race)
         cond.extend([curent_race is not None, age, race])
         print(cond)
         return ((not cond[4]) or (cond[5] and cond[6])), counts
