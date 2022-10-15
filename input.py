@@ -27,53 +27,63 @@ def conditions(row, dict_races, first_names, last_names, positions):
     """Check all conditions and if row is correct - return True, else - False.
     At the same time returns a tuple with counters
     """
-    counts = defaultdict(int)
+    counts = []
 
     def filter_face():
         age, race, curent_race = filters.face_filter(row[30], LIMIT_AGE, races)
         if curent_race is not None:
             if age:
-                counts['count_age'] += 1
+                counts.append("count_age")
                 dict_races[curent_race] += 1
                 if race:
-                    counts['count'] += 1
-                    counts['count_race'] += 1
-        else:            
-            counts['count_unreadable_ava'] += 1
-            counts['count'] += 1
-
-    def iterate_count(str):
-        counts[str] += 1
+                    counts.extend(["count", "count_race"])
+                    return True, counts
+                return False, counts
+            return False, counts
+        counts.extend(["count_unreadable_ava", "count"])
+        return True, counts
 
     conditions1 = [
         filters.name_filter(row[24], first_names),
         row[25] not in last_names,
         filters.position_filter(row[43], positions),
+    ]
+    functions1 = [
+        lambda: counts.append("count_name"),
+        lambda: counts.append("count_last"),
+        lambda: counts.append("count_pos"),
+    ]
+    returns1 = [
+        (False, counts),
+        (False, counts),
+        (False, counts),
+    ]
+
+    for cond, func, ret in zip(conditions1, functions1, returns1):
+        if cond:
+            func()
+        else:
+            return ret
+
+    conditions2 = [
         (row[30] == "") and DEL_PEOPLE_WITHOUT_AVATAR,
         (row[30] == "") and not DEL_PEOPLE_WITHOUT_AVATAR,
     ]
-    functions1 = [
-        lambda: iterate_count('count_name')
-        lambda: counts['count_last'] += 1,
-        lambda: counts['count_pos'] += 1,
-        lambda: counts['count_no_link'] += 1,
-        lambda: counts["count"] += 1 and counts["count_no_link"] += 1,
 
+    functions2 = [
+        lambda: counts.append("count_no_link"),
+        lambda: counts.extend(["count", "count_no_link"]),
     ]
 
-    for cond, func in zip(conditions1, functions1):
+    returns2 = [
+        (False, counts),
+        (True, counts),
+    ]
+
+    for cond, func, ret in zip(conditions2, functions2, returns2):
         if cond:
             func()
-
-
-    
-    if len(counts) < 3 or counts["count_no_link"]:  # if name, last or pos filter has worked / no_link has worked
-        return counts
-    filter_face()  
-    return counts 
-    
-
-    
+            return ret
 
     # age, race, curent_race = filters.face_filter(row[30], LIMIT_AGE, races)
     # if curent_race is None:
@@ -101,7 +111,7 @@ def conditions(row, dict_races, first_names, last_names, positions):
     #     else:
     #         return ret
 
-    # return filter_face()
+    return filter_face()
 
 
 # def conditions(row, dict_races, first_names, last_names, positions):
@@ -176,9 +186,9 @@ def conditions(row, dict_races, first_names, last_names, positions):
 #     return True, counts
 
 
-def counters(dict_, dict_child):
-    """Find goal filter in dict_child and rewrite (increments) some values in dict_"""
-    for elem in dict_child.keys():
+def counters(dict_, list_):
+    """For each element in list, find same key in dict and increments it value"""
+    for elem in list_:
         if elem in dict_:
             dict_[elem] += 1
 
@@ -220,16 +230,15 @@ def get_short_list(f_name, first_names, last_names, positions):
         writer2.writerow(first_row)
 
         for row in read_file:
-            d_counters_child = conditions(
+            result, t_counters = conditions(
                 row, d_rases, first_names, last_names, positions
             )
-            if d_counters_child['count']:
+            counters(d_counters, t_counters)
+            if result:
                 writer.writerow(row)
             else:
                 writer2.writerow(row)
             count_row += 1
-            counters(d_counters, d_counters_child)
-
             condition = round(100 * count_row / num_people)
 
             if (condition % 10 == 0) and (n_cond != condition):
