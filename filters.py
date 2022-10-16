@@ -1,3 +1,4 @@
+import urllib.request
 from deepface import DeepFace
 
 
@@ -19,6 +20,11 @@ def position_filter(position, black_list):
             if word.lower() in position:
                 return False
     return True
+
+
+def download_img(imgURL):
+    """Download IMG by URL"""
+    urllib.request.urlretrieve(imgURL, "img.jpg")
 
 
 def face_filter(img, age=25, races="white"):
