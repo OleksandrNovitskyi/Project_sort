@@ -1,4 +1,17 @@
 import pandas as pd
+import csv  # work with .csv files
+
+
+def read_file(f_name):
+    """Read .csv file and return list of lists"""
+    with open(f_name, "r", encoding="utf8") as file:
+        csvreader = csv.reader(
+            file, delimiter=","
+        )  # delimiter="," - if the data is concatenated in the first column by ','
+        # delimiter=";" - if the data in the different column
+        first_row = next(csvreader)
+        read_file_list = list(csvreader)
+    return read_file_list, first_row
 
 
 def input_black_list():

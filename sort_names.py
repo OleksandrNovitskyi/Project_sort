@@ -59,14 +59,12 @@ def conditions(row, dict_races, first_names, last_names, positions):
         "count_last",
         "count_pos",
     ]
-
     for cond, func in zip(conditions1, functions1):
         if cond:
             iterate_count(func)
     if len(counts) < 3:
         iterate_count("count_simple")
         return counts
-
     conditions2 = [
         (row[30] == "") and DEL_PEOPLE_WITHOUT_AVATAR,
         (row[30] == "") and not DEL_PEOPLE_WITHOUT_AVATAR,
@@ -75,7 +73,6 @@ def conditions(row, dict_races, first_names, last_names, positions):
         "count_no_link",
         ("count", "count_no_link"),
     ]
-
     for cond, func in zip(conditions2, functions2):
         if cond:
             iterate_count(func)
@@ -110,21 +107,13 @@ def get_short_list(f_name, first_names, last_names, positions):
     d_rases = defaultdict(int)
     res_file_name = f_name[:-4] + "_filt.csv"
     res_del_file_name = f_name[:-4] + "_deleted.csv"
-    with open(f_name, "r", encoding="utf8") as file, open(
-        res_file_name, "w+", encoding="utf8", newline=""
-    ) as res_file, open(
+    with open(res_file_name, "w+", encoding="utf8", newline="") as res_file, open(
         res_del_file_name, "w+", encoding="utf8", newline=""
     ) as res_del_file:
         writer = csv.writer(res_file, delimiter=";")
         writer2 = csv.writer(res_del_file, delimiter=";")
-        csvreader = csv.reader(
-            file, delimiter=","
-        )  # delimiter="," - if the data is concatenated in the first column by ','
-        # delimiter=";" - if the data in the different column
-        first_row = next(csvreader)
-        read_file = list(csvreader)
+        read_file, first_row = inputs.read_file(f_name)
         num_people = len(read_file)
-        print("--- START ---")
         print(f"Estimated time ~ {round(num_people * 1.2 / 60)} minutes")
         writer.writerow(first_row)
         writer2.writerow(first_row)
@@ -145,38 +134,38 @@ def get_short_list(f_name, first_names, last_names, positions):
             if (condition % 10 == 0) and (n_cond != condition):
                 n_cond = condition
                 print(f"---- {n_cond}% completed ----")
-        print(d_counters)
-        arr = [
-            f"There were {num_people} people before filtering",
-            f"Done, now there are {d_counters['count']} people",
-            f"Results at the file '{res_file_name}', deleted people at the file '{res_del_file_name}'",
-            "Statistic:",
-        ]
-        if DEL_PEOPLE_WITHOUT_AVATAR:
-            arr.append(
-                f"There are {d_counters['count_no_link']} people without avatar and they were deleted"
-            )
-        else:
-            arr.append(
-                f"There are {d_counters['count_no_link']} people without avatar and they in the result file"
-            )
-        arr2 = [
-            f"There are {d_counters['count_unreadable_ava']} people with unreadable avatar and they in the result file",
-            f"Delete by Name or Last or Position filtered {d_counters['count_simple']} person",
-            f"(Find {num_people - d_counters['count_name']} inappropriate Names)",
-            f"(Find {num_people - d_counters['count_last']} inappropriate Last names)",
-            f"(Find {num_people - d_counters['count_pos']} inappropriate Position)",
-            f"Delete by Age using DeepFace filter {num_people - d_counters['count_age'] - d_counters['count_simple'] - d_counters['count_no_link'] - d_counters['count_unreadable_ava']} person",
-            f"Delete by Race using DeepFace filter {d_counters['count_age'] - d_counters['count_race']} person",
-            f"How many people of what races made it to sorting by race {dict(d_rases)}",
-        ]
-        statistic = arr + arr2
-        print("\n".join(statistic))
+    arr = [
+        f"There were {num_people} people before filtering",
+        f"Done, now there are {d_counters['count']} people",
+        f"Results at the file '{res_file_name}', deleted people at the file '{res_del_file_name}'",
+        "Statistic:",
+    ]
+    if DEL_PEOPLE_WITHOUT_AVATAR:
+        arr.append(
+            f"There are {d_counters['count_no_link']} people without avatar and they were deleted"
+        )
+    else:
+        arr.append(
+            f"There are {d_counters['count_no_link']} people without avatar and they in the result file"
+        )
+    arr2 = [
+        f"There are {d_counters['count_unreadable_ava']} people with unreadable avatar and they in the result file",
+        f"Delete by Name or Last or Position filtered {d_counters['count_simple']} person",
+        f"(Find {num_people - d_counters['count_name']} inappropriate Names)",
+        f"(Find {num_people - d_counters['count_last']} inappropriate Last names)",
+        f"(Find {num_people - d_counters['count_pos']} inappropriate Position)",
+        f"Delete by Age using DeepFace filter {num_people - d_counters['count_age'] - d_counters['count_simple'] - d_counters['count_no_link'] - d_counters['count_unreadable_ava']} person",
+        f"Delete by Race using DeepFace filter {d_counters['count_age'] - d_counters['count_race']} person",
+        f"How many people of what races made it to sorting by race {dict(d_rases)}",
+    ]
+    statistic = arr + arr2
+    print("\n".join(statistic))
 
 
 def main():
     """Main excecution"""
     start_time = time.time()
+    print("--- START ---")
     first_names, last_names, positions = inputs.input_black_list()
     get_short_list(filename, first_names, last_names, positions)
     print(f"Work time --- {round((time.time() - start_time) / 60)} minutes ---")
