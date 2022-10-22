@@ -2,28 +2,29 @@
 sort emploee
 
 
-The work of the program is designed for reading a CSV table with data on employees and cleaning it according to certain filters.
+The work of the program is designed for reading a CSV table with data on employees and sorting it according to certain filters.
 Input data:
 1. CSV table with data on employees(! file name without spaces);
 2. link to spreadsheets "black list"
 
 Filters:
-1. name or surname of the employee on the "black list". The "black list" is formed manually by HR and has three columns - First_name, Last_name and Forbidden word in position.
- The name of the employee is in column 24, the surname is in column 25. 
+1. name, surname or forbidden position of the employee on the "black list". The "black list" is formed manually by HR and has three columns - First_name, Last_name and Forbidden word in position.
+ The name of the employee is in column 24, the surname is in column 25, the forbidden position is in column 43. 
 1.1 Filtering by partial name matching. If a part of the name is entered in the first column of the "black list" (case sensitive), such employees will be filtered out.
-!!! Part of the name must contain three letters or more
-2. Filtering by Forbidden word in position (column 43). List of the forbidden words is formed from third column of the "black list". 
-3. the age and race of the employee are determined by the library ``` DeepFace``` using the photo from the profile (link in column 30). 
-If link is missing - the person will be saved or deleted based on the value of variable 'del_people_without_avatar' in the block ---- INPUT PARAMETERS ----. Value may be 'True' or 'False'
-The face_filter function takes the link to a photo and is set to filter workers under age and races. Age and races can be replaced in the ---- INPUT PARAMETERS ----  by replacing the value of the variable '''limit_age''' and '''races'''
+!!! Part of the name must contain three letters or more.
+1.2 Filtering by last name assumes a complete match.
+1.3 Filtering by position requires the presence of at least one forbidden word in the position.
+2. The age and race of the employee are determined by the library ``` DeepFace``` using the photo from the profile (link in column 30). 
+If link is missing - the person will be saved or deleted based on the value of variable 'DEL_PEOPLE_WITHOUT_AVATAR' in the block ---- INPUT PARAMETERS ----. Value may be 'True' or 'False'
+The face_filter function takes the link to a photo and is set to filter workers under age and races. Age and races can be replaced in the ---- INPUT PARAMETERS ----  by replacing the value of the variable '''LIMIT_AGE''' and '''races'''
 List of possible races - ['asian', 'indian', 'black', 'white', 'middle eastern', 'latino hispanic']
 
-The result of the program isCSV file. Name of new file consist of the input file name + _filt. 
+The result of the program is two CSV files. Name of the first new file consist of the input file name + _filt and second - of the input file name + _deleted. 
 Exammple: input file - "MissouriSoftware_Tech_IT.csv"
-          result files - "MissouriSoftware_Tech_IT_filt.csv"
+          result files - "MissouriSoftware_Tech_IT_filt.csv" and "MissouriSoftware_Tech_IT_deleted.csv"
         
                          
-To check the program’s functionality, a test is written that checks the differences between the input and output files.
+To check the program’s functionality, a test is written that checks the differences between the input and first output files.
 
 Soft requirements:
 1. Python version 3.0 and higher. The installation is available here - https://www.python.org/downloads/
