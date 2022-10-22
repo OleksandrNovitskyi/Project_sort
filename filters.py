@@ -16,15 +16,15 @@ def position_filter(position, black_list):
     """Filter people by part of the position"""
     position = position.lower()
     for word in black_list:
-        if type(word) == str:
+        if isinstance(word, str):
             if word.lower() in position:
                 return False
     return True
 
 
-def download_img(imgURL):
+def download_img(img_url):
     """Download IMG by URL"""
-    urllib.request.urlretrieve(imgURL, "img.jpg")
+    urllib.request.urlretrieve(img_url, "img.jpg")
 
 
 def face_filter(img, age=25, races="white"):
@@ -32,7 +32,12 @@ def face_filter(img, age=25, races="white"):
 
     img - path to photo
     age - no younger than "age"
-    race - only one race from ['asian', 'indian', 'black', 'white', 'middle eastern', 'latino hispanic']
+    race - one race or list of races from ['asian', 'indian', 'black', 'white', 'middle eastern', 'latino hispanic']
+
+    return three parameters -
+    first - age condition
+    second - race condition
+    third - DeepFace race for this 'img'
     """
     try:
         obj = DeepFace.analyze(img_path=img, actions=["age", "race"])

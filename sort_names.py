@@ -12,7 +12,8 @@ filename = sys.argv[1]
 
 # ---- INPUT PARAMETERS ----
 LIMIT_AGE = 25  # not younger than
-# enter necessary races. List of possible races - ['asian', 'indian', 'black', 'white', 'middle eastern', 'latino hispanic']
+# enter necessary races.
+# List of possible races - ['asian', 'indian', 'black', 'white', 'middle eastern', 'latino hispanic']
 races = [
     "asian",
     "black",
@@ -22,12 +23,11 @@ DEL_PEOPLE_WITHOUT_AVATAR = False  # past 'True' or 'False'
 
 
 def conditions(row, dict_races, first_names, last_names, positions):
-    """Check all conditions and if row is correct - return True, else - False.
-    At the same time returns a tuple with counters
-    """
+    """Check all conditions and returns a dictionary with counters histogram"""
     counts = defaultdict(int)
 
     def filter_face():
+        """Using DeepFace add counts to counters histogram"""
         age, race, curent_race = filters.face_filter(row[30], LIMIT_AGE, races)
         if curent_race is not None:
             if age:
@@ -40,9 +40,8 @@ def conditions(row, dict_races, first_names, last_names, positions):
             counts["count_unreadable_ava"] += 1
             counts["count"] += 1
 
-    def iterate_count(
-        str_args,
-    ):  # try ```iterate_count(*str_args)``` - but it doesn't open tuple
+    def iterate_count(str_args):
+        """Check 'str_args' by type, if tuple - use elements of it"""
         if isinstance(str_args, tuple):
             for str_count in str_args:
                 counts[str_count] += 1
@@ -53,7 +52,7 @@ def conditions(row, dict_races, first_names, last_names, positions):
         filters.name_filter(row[24], first_names),
         row[25] not in last_names,
         filters.position_filter(row[43], positions),
-    ]
+    ]  # simple conditions
     functions1 = [
         "count_name",
         "count_last",
@@ -62,9 +61,10 @@ def conditions(row, dict_races, first_names, last_names, positions):
     for cond, func in zip(conditions1, functions1):
         if cond:
             iterate_count(func)
-    if len(counts) < 3:
+    if len(counts) < 3:  # one of the simple conditions worked
         iterate_count("count_simple")
         return counts
+
     conditions2 = [
         (row[30] == "") and DEL_PEOPLE_WITHOUT_AVATAR,
         (row[30] == "") and not DEL_PEOPLE_WITHOUT_AVATAR,
@@ -78,6 +78,7 @@ def conditions(row, dict_races, first_names, last_names, positions):
             iterate_count(func)
     if counts["count_no_link"]:
         return counts
+
     filter_face()
     return counts
 
@@ -90,7 +91,11 @@ def counters(dict_, dict_child):
 
 
 def get_short_list(f_name, first_names, last_names, positions):
-    """Read .csv file and create(rewrite) another .csv file with short list of people"""
+    """Create(rewrite) two .csv files: first - with short list of people, second - deleted people
+
+    f_name - input file name
+    first_names, last_names, positions - data from 'black list'
+    """
     d_counters = {
         "count": 0,
         "count_no_link": 0,
@@ -101,9 +106,9 @@ def get_short_list(f_name, first_names, last_names, positions):
         "count_age": 0,
         "count_race": 0,
         "count_simple": 0,
-    }
-    count_row = 0
-    n_cond = 0
+    }  # counters histogram
+    count_row = 0  # number of rows in output file
+    n_cond = 0  # for check progress of execution
     d_rases = defaultdict(int)
     res_file_name = f_name[:-4] + "_filt.csv"
     res_del_file_name = f_name[:-4] + "_deleted.csv"
@@ -130,7 +135,6 @@ def get_short_list(f_name, first_names, last_names, positions):
             counters(d_counters, d_counters_child)
 
             condition = round(100 * count_row / num_people)
-
             if (condition % 10 == 0) and (n_cond != condition):
                 n_cond = condition
                 print(f"---- {n_cond}% completed ----")
@@ -154,7 +158,7 @@ def get_short_list(f_name, first_names, last_names, positions):
         f"(Find {num_people - d_counters['count_name']} inappropriate Names)",
         f"(Find {num_people - d_counters['count_last']} inappropriate Last names)",
         f"(Find {num_people - d_counters['count_pos']} inappropriate Position)",
-        f"Delete by Age using DeepFace filter {num_people - d_counters['count_age'] - d_counters['count_simple'] - d_counters['count_no_link'] - d_counters['count_unreadable_ava']} person",
+        f"Delete by Age using DeepFace filter {num_people - d_counters['count_age'] - d_counters['count_simple']- d_counters['count_no_link'] - d_counters['count_unreadable_ava']} person",
         f"Delete by Race using DeepFace filter {d_counters['count_age'] - d_counters['count_race']} person",
         f"How many people of what races made it to sorting by race {dict(d_rases)}",
     ]
